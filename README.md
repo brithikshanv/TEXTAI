@@ -35,7 +35,6 @@ As a CS graduate exploring AI, I created TextAI to:
 
 - Install dependencies: `pip install -r requirements.txt`  
 - Run the app: `streamlit run main.py`  
-- *No API keys needed for local mode*  
 
 ##  How to Contribute  
 
