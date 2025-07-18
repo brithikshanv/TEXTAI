@@ -36,34 +36,19 @@ As a CS graduate exploring AI, I created TextAI to:
 - Install dependencies: `pip install -r requirements.txt`  
 - Run the app: `streamlit run main.py`  
 
-##  How to Contribute  
+## Contributing
 
-### Focus Areas & Future Enhancements  
-**Immediate Improvements Needed**  
-- Improve handwritten text OCR accuracy  
-- Enhance audio-text synchronization  
-- Add EPUB file support  
+I'm open to contributions — feel free to fork this repository or create a new feature branch.
+please, 
+1. Fork the repository or create a new branch from `main`
+2. Make your changes or improvements
+3. Run linting/formatting if needed
+4. Push to your branch
+5. Open a Pull Request with:
+   - A clear description of the change
+   - Visual proof (screenshots or screen recording) if applicable
 
-**Planned Features**  
-- Chrome extension for web article capture  
-- Whisper integration for voice commands  
-- Batch processing for multiple files  
-- Domain-specific fine-tuned models  
-
-### Submission Process  
-1. Create a new feature branch  
-2. Make your changes  
-3. Run formatting checks  
-4. Push your branch  
-5. Open a pull request with:  
-   - Change description  
-   - Visual proof if applicable  
-
-### Code Principles  
-- Prioritize local processing  
-- Use type annotations  
-- Include tests for new features
-
+Please check out the [demo video](https://github.com/brithikshanv/TEXTAI/blob/main/TEXT%20AI%20DEMO.mp4) to understand how TextAI works.
 
 
 
