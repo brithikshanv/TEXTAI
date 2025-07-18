@@ -1,0 +1,139 @@
+import streamlit as st
+import os
+import base64
+import io
+import time
+from utils.pdf_processor import extract_text_from_pdf
+from utils.web_scraper import extract_text_from_url
+from utils.ocr import extract_text_from_image
+from gtts import gTTS
+from transformers import pipeline
+from openai import OpenAI
+
+# --- Config ---
+st.set_page_config(page_title="TEXTAI", layout="wide")
+st.markdown("""
+<style>
+    .highlight { background-color: #FFF59D; transition: all 0.3s ease; }
+    .text-display { min-height: 200px; border: 1px solid #ddd; padding: 15px; }
+</style>
+""", unsafe_allow_html=True)
+
+# --- Initialize Models ---
+@st.cache_resource
+def load_models():
+    return pipeline("summarization", model="facebook/bart-large-cnn")
+
+summarizer = load_models()
+
+# --- Chunking Function ---
+def chunk_text(text, max_words=300, overlap=50):
+    words = text.split()
+    chunks = []
+    i = 0
+    while i < len(words):
+        chunk = words[i:i+max_words]
+        chunks.append(" ".join(chunk))
+        i += max_words - overlap
+    return chunks
+
+# --- Summarization Logic ---
+def summarize_with_llm(text, api_key=None):
+    if api_key:
+        try:
+            client = OpenAI(api_key=api_key)
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[{"role": "user", "content": f"Summarize this:\n{text}"}],
+                temperature=0.7
+            )
+            return response.choices[0].message.content
+        except:
+            pass  # fallback to local model
+
+    # Use chunked summarization for large text
+    chunks = chunk_text(text)
+    summaries = []
+    for idx, chunk in enumerate(chunks):
+        try:
+            summary = summarizer(chunk, max_length=150, min_length=40, do_sample=False)[0]['summary_text']
+            summaries.append(summary)
+        except Exception as e:
+            summaries.append(f"[Error summarizing chunk {idx+1}]")
+    return " ".join(summaries)
+
+# --- Text-to-Speech ---
+def text_to_speech(text, lang='en'):
+    audio_bytes = io.BytesIO()
+    tts = gTTS(text=text, lang=lang, slow=False)
+    tts.write_to_fp(audio_bytes)
+    audio_bytes.seek(0)
+    return audio_bytes
+
+# --- UI Input Handling ---
+def input_selector():
+    col1, col2 = st.columns(2)
+    with col1:
+        input_method = st.radio("Input Method:", ["Text", "PDF", "URL", "Image"])
+    with col2:
+        if input_method == "Text":
+            return st.text_area("Enter Text:", height=200)
+        elif input_method == "PDF":
+            return extract_text_from_pdf(st.file_uploader("Upload PDF"))
+        elif input_method == "URL":
+            return extract_text_from_url(st.text_input("Enter URL:"))
+        elif input_method == "Image":
+            return extract_text_from_image(st.file_uploader("Upload Image"))
+
+# --- Main App ---
+def main():
+    st.title("🧠 TextAI - Smart Text Processing")
+
+    # Input Section
+    with st.expander("📥 Input", expanded=True):
+        raw_text = input_selector()
+
+    if not raw_text:
+        st.warning("Please provide input")
+        return
+
+    # Process Section
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("🔍 Summarize Text"):
+            with st.spinner("Generating summary..."):
+                api_key = os.getenv("OPENAI_API_KEY")
+                summary = summarize_with_llm(raw_text, api_key)
+                st.session_state.summary = summary
+
+    with col2:
+        if st.button("🔊 Convert to Speech"):
+            st.session_state.audio = text_to_speech(raw_text)
+
+    # Results Section
+    if "summary" in st.session_state:
+        with st.expander("📝 Summary Result", expanded=True):
+            st.write(st.session_state.summary)
+            st.download_button("Download Summary", st.session_state.summary, file_name="summary.txt")
+
+    if "audio" in st.session_state:
+        with st.expander("🎧 Speech Output", expanded=True):
+            st.audio(st.session_state.audio, format="audio/mp3")
+            st.download_button("Download Audio", st.session_state.audio, file_name="speech.mp3", mime="audio/mpeg")
+
+            # Word Highlighting (Simulated)
+            if st.checkbox("Enable Word Highlighting"):
+                words = raw_text.split()
+                placeholder = st.empty()
+                duration = len(words) * 0.3
+
+                for i, word in enumerate(words):
+                    highlighted = " ".join([
+                        f'<span class="highlight">{w}</span>' if j == i else w
+                        for j, w in enumerate(words)
+                    ])
+                    placeholder.markdown(highlighted, unsafe_allow_html=True)
+                    time.sleep(duration / len(words))
+
+if __name__ == "__main__":
+    main()
