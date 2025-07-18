@@ -1,3 +1,4 @@
+#import necessary libraries
 import streamlit as st
 import os
 import base64
@@ -10,7 +11,8 @@ from gtts import gTTS
 from transformers import pipeline
 from openai import OpenAI
 
-# --- Config ---
+# Set up OpenAI API client
+# st.session_state.openai_api_key = st.text_input("OpenAI API Key:", type="password")
 st.set_page_config(page_title="TextAI", layout="wide")
 st.markdown("""
 <style>
@@ -31,14 +33,14 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- Initialize Models ---
+# intializing and loading the summarization models
 @st.cache_resource
 def load_models():
     return pipeline("summarization", model="facebook/bart-large-cnn")
 
 summarizer = load_models()
 
-# --- Chunking Function ---
+#text chunking function
 def chunk_text(text, max_words=300, overlap=50):
     words = text.split()
     chunks = []
@@ -49,7 +51,7 @@ def chunk_text(text, max_words=300, overlap=50):
         i += max_words - overlap
     return chunks
 
-# --- Summarization Logic ---
+# summarization function using llm
 def summarize_with_llm(text, api_key=None):
     if api_key:
         try:
@@ -74,7 +76,7 @@ def summarize_with_llm(text, api_key=None):
             summaries.append(f"[Error summarizing chunk {idx+1}]")
     return " ".join(summaries)
 
-# --- Text-to-Speech ---
+# text to speech conversion function
 def text_to_speech(text, lang='en'):
     audio_bytes = io.BytesIO()
     tts = gTTS(text=text, lang=lang, slow=False)
@@ -82,7 +84,7 @@ def text_to_speech(text, lang='en'):
     audio_bytes.seek(0)
     return audio_bytes
 
-# --- UI Input Handling ---
+# input handling function cache
 def input_selector():
     col1, col2 = st.columns(2)
     with col1:
@@ -97,7 +99,7 @@ def input_selector():
         elif input_method == "Image":
             return extract_text_from_image(st.file_uploader("Upload Image"))
 
-# --- JavaScript for Audio Sync ---
+# js for syncing audio with word highlighted
 def get_audio_sync_js(words):
     js_code = f"""
     <script>
@@ -178,9 +180,10 @@ def get_audio_sync_js(words):
     }});
     </script>
     """
+    
     return js_code
 
-# --- Main App ---
+# main function
 def main():
     st.title("TextAI - Smart Text Processing")
 
@@ -234,7 +237,8 @@ def main():
                 """, unsafe_allow_html=True)
                 
                 # Inject the JavaScript for synchronization
-                st.markdown(get_audio_sync_js(words), unsafe_allow_html=True)
+                import json
+                st.markdown(get_audio_sync_js(json.dumps(words)), unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
