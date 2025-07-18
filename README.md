@@ -7,12 +7,14 @@
 ![NLP](https://img.shields.io/badge/NLP-38B2AC?style=for-the-badge&logo=natural-language-processing&logoColor=white)
 
 ##  Why I Built This
+
 As a CS graduate exploring AI, I created TextAI to:
 - **Learn** NLP/audio processing hands-on
 - Solve my **personal need**: Listen to long articles/texts locally on my laptop
 - Avoid cloud dependencies for privacy-sensitive content
 
 ##  Features
+
 - **Multi-Input Support**: Extract text from PDFs, URLs, and images (OCR)
 - **AI Summarization**: 
   - Cloud: GPT-3.5 Turbo (OpenAI API)
@@ -21,6 +23,7 @@ As a CS graduate exploring AI, I created TextAI to:
 - **Real-Time Sync**: Word-by-word highlighting during playback
 
 ##  Challenges Faced
+
 1. **API Limitations**: 
    - OpenAI rate limits → Implemented local model fallback
 2. **Large Text Processing**: 
@@ -29,6 +32,7 @@ As a CS graduate exploring AI, I created TextAI to:
    - Timing discrepancies → Used dynamic delay calculation
 
 ##  Get Started  
+
 - Install dependencies: `pip install -r requirements.txt`  
 - Run the app: `streamlit run app.py`  
 - *No API keys needed for local mode*  
