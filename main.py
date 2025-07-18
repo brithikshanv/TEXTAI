@@ -16,6 +16,18 @@ st.markdown("""
 <style>
     .highlight { background-color: #FFF59D; transition: all 0.3s ease; }
     .text-display { min-height: 200px; border: 1px solid #ddd; padding: 15px; }
+    .word-highlight {
+        transition: background-color 0.3s ease;
+        padding: 2px 0;
+        display: inline-block;
+    }
+    .word-container {
+        max-height: 300px;
+        overflow-y: auto;
+        border: 1px solid #ddd;
+        padding: 15px;
+        line-height: 1.8;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -89,43 +101,80 @@ def input_selector():
 def get_audio_sync_js(words):
     js_code = f"""
     <script>
-    const words = {words};
-    const audio = document.querySelector("audio");
-    const wordElements = document.querySelectorAll(".word-highlight");
-    let currentWord = 0;
-    
-    function updateHighlight() {{
-        // Remove highlight from all words
-        wordElements.forEach(el => el.style.backgroundColor = "");
+    function initializeAudioSync() {{
+        const words = {words};
+        let audio = document.querySelector("section[data-testid='stExpander'] audio");
         
-        // Calculate current word based on audio time
-        const duration = audio.duration;
-        const currentTime = audio.currentTime;
-        const progress = currentTime / duration;
-        currentWord = Math.floor(progress * words.length);
-        
-        // Ensure we stay within bounds
-        currentWord = Math.max(0, Math.min(currentWord, words.length - 1));
-        
-        // Highlight current word
-        if (wordElements[currentWord]) {{
-            wordElements[currentWord].style.backgroundColor = "#FFF59D";
-            
-            // Scroll to keep word in view
-            wordElements[currentWord].scrollIntoView({{
-                behavior: "smooth",
-                block: "center"
-            }});
+        if (!audio) {{
+            // Alternative selector if the first one fails
+            audio = document.querySelector("audio");
         }}
+        
+        if (!audio) {{
+            console.log("Audio element not found");
+            return;
+        }}
+        
+        const wordElements = document.querySelectorAll(".word-highlight");
+        let currentWord = 0;
+        
+        function updateHighlight() {{
+            // Remove highlight from all words
+            wordElements.forEach(el => el.style.backgroundColor = "");
+            
+            // Calculate current word based on audio time
+            const duration = audio.duration || 1;
+            const currentTime = audio.currentTime;
+            const progress = Math.min(currentTime / duration, 0.999);  // Cap at 99.9%
+            currentWord = Math.floor(progress * words.length);
+            
+            // Ensure we stay within bounds
+            currentWord = Math.max(0, Math.min(currentWord, words.length - 1));
+            
+            // Highlight current word
+            if (wordElements[currentWord]) {{
+                wordElements[currentWord].style.backgroundColor = "#FFF59D";
+                
+                // Scroll to keep word in view
+                wordElements[currentWord].scrollIntoView({{
+                    behavior: "smooth",
+                    block: "nearest",
+                    inline: "center"
+                }});
+            }}
+        }}
+        
+        function resetHighlight() {{
+            wordElements.forEach(el => el.style.backgroundColor = "");
+            currentWord = 0;
+        }}
+        
+        // Clean up any existing listeners
+        audio.removeEventListener("timeupdate", updateHighlight);
+        audio.removeEventListener("play", updateHighlight);
+        audio.removeEventListener("ended", resetHighlight);
+        audio.removeEventListener("pause", resetHighlight);
+        
+        // Add new listeners
+        audio.addEventListener("timeupdate", updateHighlight);
+        audio.addEventListener("play", updateHighlight);
+        audio.addEventListener("ended", resetHighlight);
+        audio.addEventListener("pause", resetHighlight);
     }}
     
-    audio.addEventListener("timeupdate", updateHighlight);
-    audio.addEventListener("play", updateHighlight);
+    // Initialize immediately and reinitialize after Streamlit updates
+    initializeAudioSync();
     
-    // Reset on audio end
-    audio.addEventListener("ended", () => {{
-        wordElements.forEach(el => el.style.backgroundColor = "");
-        currentWord = 0;
+    // Set up mutation observer to reinitialize when content changes
+    const observer = new MutationObserver(function(mutations) {{
+        if (document.querySelector(".word-highlight")) {{
+            initializeAudioSync();
+        }}
+    }});
+    
+    observer.observe(document.body, {{
+        childList: true,
+        subtree: true
     }});
     </script>
     """
@@ -140,7 +189,7 @@ def main():
         raw_text = input_selector()
 
     if not raw_text:
-        st.warning("Please provide Input Method to Summarize Text or Convert to Speech Mode")
+        st.warning("Please provide input method to Summarize Text or Convert to Speech Mode")
         return
 
     # Process Section
@@ -179,7 +228,7 @@ def main():
                 )
                 
                 st.markdown(f"""
-                <div style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 15px;">
+                <div class="word-container">
                     {highlighted_text}
                 </div>
                 """, unsafe_allow_html=True)
