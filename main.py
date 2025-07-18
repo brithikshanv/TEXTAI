@@ -140,7 +140,7 @@ def main():
         raw_text = input_selector()
 
     if not raw_text:
-        st.warning("Please provide input method to Summarize Text or Convert to Speech Mode")
+        st.warning("Please provide Input Method to Summarize Text or Convert to Speech Mode")
         return
 
     # Process Section
