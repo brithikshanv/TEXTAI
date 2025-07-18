@@ -11,7 +11,7 @@ from transformers import pipeline
 from openai import OpenAI
 
 # --- Config ---
-st.set_page_config(page_title="TEXTAI", layout="wide")
+st.set_page_config(page_title="TextAI", layout="wide")
 st.markdown("""
 <style>
     .highlight { background-color: #FFF59D; transition: all 0.3s ease; }
@@ -85,16 +85,62 @@ def input_selector():
         elif input_method == "Image":
             return extract_text_from_image(st.file_uploader("Upload Image"))
 
+# --- JavaScript for Audio Sync ---
+def get_audio_sync_js(words):
+    js_code = f"""
+    <script>
+    const words = {words};
+    const audio = document.querySelector("audio");
+    const wordElements = document.querySelectorAll(".word-highlight");
+    let currentWord = 0;
+    
+    function updateHighlight() {{
+        // Remove highlight from all words
+        wordElements.forEach(el => el.style.backgroundColor = "");
+        
+        // Calculate current word based on audio time
+        const duration = audio.duration;
+        const currentTime = audio.currentTime;
+        const progress = currentTime / duration;
+        currentWord = Math.floor(progress * words.length);
+        
+        // Ensure we stay within bounds
+        currentWord = Math.max(0, Math.min(currentWord, words.length - 1));
+        
+        // Highlight current word
+        if (wordElements[currentWord]) {{
+            wordElements[currentWord].style.backgroundColor = "#FFF59D";
+            
+            // Scroll to keep word in view
+            wordElements[currentWord].scrollIntoView({{
+                behavior: "smooth",
+                block: "center"
+            }});
+        }}
+    }}
+    
+    audio.addEventListener("timeupdate", updateHighlight);
+    audio.addEventListener("play", updateHighlight);
+    
+    // Reset on audio end
+    audio.addEventListener("ended", () => {{
+        wordElements.forEach(el => el.style.backgroundColor = "");
+        currentWord = 0;
+    }});
+    </script>
+    """
+    return js_code
+
 # --- Main App ---
 def main():
-    st.title("🧠 TextAI - Smart Text Processing")
+    st.title("TextAI - Smart Text Processing")
 
     # Input Section
-    with st.expander("📥 Input", expanded=True):
+    with st.expander("Input Type", expanded=True):
         raw_text = input_selector()
 
     if not raw_text:
-        st.warning("Please provide input")
+        st.warning("Please provide input method to Summarize Text or Convert to Speech Mode")
         return
 
     # Process Section
@@ -109,6 +155,7 @@ def main():
     with col2:
         if st.button("🔊 Convert to Speech"):
             st.session_state.audio = text_to_speech(raw_text)
+            st.session_state.words = raw_text.split()
 
     # Results Section
     if "summary" in st.session_state:
@@ -121,19 +168,24 @@ def main():
             st.audio(st.session_state.audio, format="audio/mp3")
             st.download_button("Download Audio", st.session_state.audio, file_name="speech.mp3", mime="audio/mpeg")
 
-            # Word Highlighting (Simulated)
-            if st.checkbox("Enable Word Highlighting"):
-                words = raw_text.split()
-                placeholder = st.empty()
-                duration = len(words) * 0.3
-
-                for i, word in enumerate(words):
-                    highlighted = " ".join([
-                        f'<span class="highlight">{w}</span>' if j == i else w
-                        for j, w in enumerate(words)
-                    ])
-                    placeholder.markdown(highlighted, unsafe_allow_html=True)
-                    time.sleep(duration / len(words))
+            # Word Highlighting with Audio Sync
+            if st.checkbox("Enable Word Highlighting (Sync with Audio)"):
+                words = st.session_state.words
+                
+                # Create word elements with class for JavaScript targeting
+                highlighted_text = " ".join(
+                    [f'<span class="word-highlight" id="word-{i}">{word}</span>' 
+                     for i, word in enumerate(words)]
+                )
+                
+                st.markdown(f"""
+                <div style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 15px;">
+                    {highlighted_text}
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Inject the JavaScript for synchronization
+                st.markdown(get_audio_sync_js(words), unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
