@@ -16,7 +16,7 @@ As a CS graduate exploring AI, I created TextAI to:
 ##  Features
 
 - **Multi-Input Support**: Extract text from PDFs, URLs, and images (OCR)
-- **AI Summarization**: 
+- **AI Summarization**:
   - Cloud: GPT-3.5 Turbo (OpenAI API)
   - Local: BART model (offline fallback)
 - **Text-to-Speech**: Convert text to audio with adjustable speed
