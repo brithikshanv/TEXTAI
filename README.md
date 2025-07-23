@@ -31,23 +31,6 @@ As a CS graduate exploring AI, I created TextAI to:
 3. **Audio-Text Sync**: 
    - Timing discrepancies → Used dynamic delay calculation
 
-##  Get Started  
-
-- Install dependencies: `pip install -r requirements.txt`  
-- Run the app: `streamlit run main.py`  
-
-## Contributing
-
-I'm open to contributions — feel free to fork this repository or create a new feature branch.
-please, 
-1. Fork the repository or create a new branch from `main`
-2. Make your changes or improvements
-3. Run linting/formatting if needed
-4. Push to your branch
-5. Open a Pull Request with:
-   - A clear description of the change
-   - Visual proof (screenshots or screen recording) if applicable
-
 Please check out the [demo video](https://github.com/brithikshanv/TEXTAI/blob/main/TEXT%20AI%20DEMO.mp4) to understand how TextAI works.
 
 
