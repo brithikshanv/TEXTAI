@@ -24,4 +24,12 @@ build/
 
 # Logs and databases
 *.log
+
 *.sqlite3
+=======
+*.sqlite3
+
+utils/__pycache__/
+
+.DS_Store
+*.DS_Store

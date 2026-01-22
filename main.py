@@ -1,5 +1,5 @@
 #import necessary libraries
-import streamlit as st
+import sys
 import os
 import base64
 import io
@@ -8,8 +8,12 @@ from utils.pdf_processor import extract_text_from_pdf
 from utils.web_scraper import extract_text_from_url
 from utils.ocr import extract_text_from_image
 from gtts import gTTS
+import torch
 from transformers import pipeline
 from openai import OpenAI
+import streamlit as st
+
+
 
 # Set up OpenAI API client
 # st.session_state.openai_api_key = st.text_input("OpenAI API Key:", type="password")
