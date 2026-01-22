@@ -213,9 +213,6 @@ sympy==1.14.0
 tenacity==9.1.2
 tokenizers==0.22.2
 toml==0.10.2
-torch==2.10.0
-torchaudio==2.10.0
-torchvision==0.25.0
 tornado==6.5.4
 tqdm==4.67.1
 transformers==4.57.6
