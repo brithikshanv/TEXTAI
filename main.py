@@ -217,7 +217,7 @@ def main():
     if "summary" in st.session_state:
         with st.expander("📝 Summary Result", expanded=True):
             st.write(st.session_state.summary)
-            st.download_button("Download Summary", st.session_state.summary, file_name="summary.txt")
+            st.download_button("Download Summary", st.session_state.summary, file_name="summary.txt") # type: ignore
 
     if "audio" in st.session_state:
         with st.expander("🎧 Speech Output", expanded=True):
